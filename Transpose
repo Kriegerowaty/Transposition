@@ -1,0 +1,64 @@
+Sub Transpose()
+
+' Ustawienie zmiennej z arkuszem
+Dim ws As Worksheet
+Set ws = ActiveSheet
+
+' Ustawienie poczatkowej kolumny
+Dim startCol As Long
+startCol = 2 ' Kolumna B
+
+' Pobranie ostatniego wiersza w pierwszej kolumnie
+Dim lastRow As Long
+lastRow = ws.Cells(ws.Rows.Count, startCol).End(xlUp).Row
+
+' Iteracja po kazdej kolumnie zaczynajac od kolumny B
+Dim currentCol As Long
+currentCol = startCol
+
+Do While ws.Cells(2, currentCol).Value <> "" ' Dopóki naglówek kolumny nie jest pusty
+    If InStr(ws.Cells(2, currentCol).Value, " - - ") = 0 Then
+        ' Pobranie ostatniej wartosci w kolumnie
+        lastRow = ws.Cells(ws.Rows.Count, currentCol).End(xlUp).Row
+        Dim lastValue As String
+        Do While Len(ws.Cells(lastRow, currentCol).Value) < 2 And lastRow > 2 ' Pobranie ostatniej komórki z wiecej niz jednym znakiem
+                lastRow = lastRow - 1
+            Loop
+        lastValue = ws.Cells(lastRow, currentCol).Value
+        
+        ' Doklejenie wartosci do naglówka w drugim wierszu
+        Dim headerValue As String
+        headerValue = ws.Cells(2, currentCol).Value
+        ws.Cells(2, currentCol).Value = headerValue & " - - " & lastValue
+    End If
+    ' Przejscie do kolejnej kolumny
+    currentCol = currentCol + 1
+Loop
+
+
+' Sprawdzenie, czy ostatnia kolumna zawiera juz transponowanie
+Dim lastCol As Long
+lastCol = ws.Cells(2, ws.Columns.Count).End(xlToLeft).Column
+Dim lastCell As Range
+Set lastCell = ws.Cells(3, lastCol)
+If InStr(lastCell.Value, "- -") <> 0 Then
+    MsgBox "Nie mozna wykonac operacji, poniewaz ostatnia kolumna juz zawiera transponowanie."
+    Exit Sub
+End If
+
+
+Range("B2:EA30").Sort Key1:=Range("B2"), _
+                     Order1:=xlAscending, _
+                     Orientation:=xlSortRows, _
+                     Header:=xlYes
+                                                                      
+Dim last_col As Variant
+'last_col = Cells(2, Columns.Count).End(xlToLeft)
+Set last_col = Range("B2").End(xlToRight)
+last_col = last_col.Offset(0, 1).Address
+Range("B2:EA2").Copy
+Range("A20").PasteSpecial Transpose:=True
+Range("A20:A150").Cut Range(last_col)
+
+
+End Sub
